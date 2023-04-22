@@ -71,7 +71,7 @@ class MainWindow(QMainWindow):
         self.download.clicked.connect(self.doTheThing)
         self.clear.clicked.connect(self.cleanUp)
         w = QWidget(); w.setLayout(self.layout); self.setCentralWidget(w); self.show()
-        self.threadpool = QThreadPool(); self.threadpool.setMaxThreadCount(3)
+        self.threadpool = QThreadPool(); self.threadpool.setMaxThreadCount(1000)
         #print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
     # Depending on whether debug checkbox is checked the UI will look different.
