@@ -128,7 +128,7 @@ class MainWindow(QMainWindow):
                     worker.signals.finished.connect(self.thread_complete)
                     self.debugBox.insertHtml(f"<p><br>>>> Working with {url}<br>{(str(_cmd_str))}<br></p>")
                     self.status.showMessage("Work in progress"); outcome = self.threadpool.start(worker)
-                    self.t1 = t; t += 1     # needed for updating the file count field
+                    t += 1; self.t1 = t     # needed for updating the file count field
         except ValueError:
             self.debugBox.insertHtml(str('<pre style="color:red;">' + "ERROR: file count must be an integer." + "</pre><br>"))
 
