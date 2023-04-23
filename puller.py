@@ -42,36 +42,38 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("TikTok puller")
         self.setWindowIcon(QIcon("icon.png"))
         self.layout = QGridLayout()
-        #self.debug = QCheckBox("Debug mode")
-        self.status = QStatusBar()
         self.download = QPushButton("Download")
         self.clear = QPushButton("Clear")
         self.count = QLineEdit(self, placeholderText="File count")
+        self.syncCount = QCheckBox("File count sync")
         self.target = QTextEdit(self,
                                 acceptRichText=False,
                                 lineWrapMode=QTextEdit.WidgetWidth,
                                 undoRedoEnabled=True,
                                 placeholderText="URLs go here")
+        self.status = QStatusBar()
         self.debugBoxLabel = QLabel("Debug screen")
         self.debugBox = QTextEdit(self,
                                 readOnly=True,
                                 acceptRichText=True,
                                 lineWrapMode=QTextEdit.WidgetWidth)
+        #self.debug = QCheckBox("Debug mode")
 
         # https://www.pythonguis.com/tutorials/pyqt-layouts/
         # https://stackoverflow.com/questions/61451279/how-does-setcolumnstretch-and-setrowstretch-works
         self.layout.addWidget(self.download, 0, 0)
-        self.layout.addWidget(self.clear, 0, 1)
+        self.layout.addWidget(self.clear, 0, 1, 1, 2)   # 1 row, 2 columns
         self.layout.addWidget(self.count, 1, 1)
-        self.layout.addWidget(self.status, 2, 1)
+        self.layout.addWidget(self.syncCount, 1, 2)
         self.layout.addWidget(self.target, 1, 0, 2, 1)  # 2 rows, 1 column
+        self.layout.addWidget(self.status, 2, 1)
         self.layout.addWidget(self.debugBoxLabel, 3, 0)
         self.layout.addWidget(self.debugBox, 4, 0, 1, 2) # 1 row, 2 columns)
 
         self.download.clicked.connect(self.doTheThing)
         self.clear.clicked.connect(self.cleanUp)
         w = QWidget(); w.setLayout(self.layout); self.setCentralWidget(w); self.show()
-        self.threadpool = QThreadPool(); self.threadpool.setMaxThreadCount(1000)
+        self.threadpool = QThreadPool(); self.threadpool.setMaxThreadCount(3)
         #print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
     # Depending on whether debug checkbox is checked the UI will look different.
@@ -98,6 +100,9 @@ class MainWindow(QMainWindow):
         if self.threadpool.activeThreadCount() == 0:
             self.enableButtons()
             self.status.showMessage("Nothing to do")
+            # Convenience feature. Update the file count value with what the iterator has reached provided the sync count box is checked.
+            if self.syncCount.isChecked():
+                self.count.setText(str(self.t1))
 
     # Updating the debug box outside of any threads because otherwise there will be constant segmentation faults.
     def updateDebugBox(self, outcome):
@@ -122,22 +127,20 @@ class MainWindow(QMainWindow):
                     worker.signals.result.connect(self.updateDebugBox)
                     worker.signals.finished.connect(self.thread_complete)
                     self.debugBox.insertHtml(f"<p><br>>>> Working with {url}<br>{(str(_cmd_str))}<br></p>")
-                    #if self.threadpool.activeThreadCount() == self.threadpool.maxThreadCount():
-                    #    time.sleep(random.randrange(0, 3))
-                    #    self.status.showMessage("Work in progress"); outcome = self.threadpool.start(worker)
-                    #else:
                     self.status.showMessage("Work in progress"); outcome = self.threadpool.start(worker)
-                    t += 1
+                    self.t1 = t; t += 1     # needed for updating the 
         except ValueError:
             self.debugBox.insertHtml(str('<pre style="color:red;">' + "ERROR: file count must be an integer." + "</pre><br>"))
 
     def disableButtons(self):
        self.download.setEnabled(False)
        self.clear.setEnabled(False)
+       self.count.setReadOnly(True)
 
     def enableButtons(self):
         self.download.setEnabled(True)
         self.clear.setEnabled(True)
+        self.count.setReadOnly(False)
 
     # Remove contents of all fields and wait for all threads to finish.
     def cleanUp(self):
