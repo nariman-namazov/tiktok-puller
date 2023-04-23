@@ -73,7 +73,7 @@ class MainWindow(QMainWindow):
         self.download.clicked.connect(self.doTheThing)
         self.clear.clicked.connect(self.cleanUp)
         w = QWidget(); w.setLayout(self.layout); self.setCentralWidget(w); self.show()
-        self.threadpool = QThreadPool(); self.threadpool.setMaxThreadCount(3)
+        self.threadpool = QThreadPool(); self.threadpool.setMaxThreadCount(1000)
         #print("Multithreading with maximum %d threads" % self.threadpool.maxThreadCount())
 
     # Depending on whether debug checkbox is checked the UI will look different.
@@ -128,10 +128,11 @@ class MainWindow(QMainWindow):
                     worker.signals.finished.connect(self.thread_complete)
                     self.debugBox.insertHtml(f"<p><br>>>> Working with {url}<br>{(str(_cmd_str))}<br></p>")
                     self.status.showMessage("Work in progress"); outcome = self.threadpool.start(worker)
-                    self.t1 = t; t += 1     # needed for updating the 
+                    self.t1 = t; t += 1     # needed for updating the file count field
         except ValueError:
             self.debugBox.insertHtml(str('<pre style="color:red;">' + "ERROR: file count must be an integer." + "</pre><br>"))
 
+    # Disabling and enabling all elements of GUI that should not be modified when threads are running.
     def disableButtons(self):
        self.download.setEnabled(False)
        self.clear.setEnabled(False)
