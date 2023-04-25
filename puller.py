@@ -122,7 +122,7 @@ class MainWindow(QMainWindow):
             t = int(self.count.text()); self.disableButtons()   # no easy way to kill threads in pyqt5, so unless the window is closed you will have to wait
             for url in self.target.toPlainText().split("\n"):
                 if url:
-                    _cmd_str = f'yt-dlp -f $(yt-dlp -F "{url}" | tail -1 | ' + "awk '{print $1}'" + f') -o "{t}.mp4"' + f' "{url}"'
+                    _cmd_str = f'yt-dlp -S res,ext:mp4:m4a -o "{t}.mp4" "{url}"'
                     worker = Worker(self.downloadVideo, url, t, _cmd_str)
                     worker.signals.result.connect(self.updateDebugBox)
                     worker.signals.finished.connect(self.thread_complete)
